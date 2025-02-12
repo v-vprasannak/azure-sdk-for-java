@@ -53,4 +53,29 @@ public final class EmailClient {
     public SyncPoller<EmailSendResult, EmailSendResult> beginSend(EmailMessage message, Context context) {
         return client.beginSend(message, context).getSyncPoller();
     }
+
+    /**
+     * Retrieves the result of a previously initiated send email operation.
+     *
+     * @param operationId The operation ID of the previously sent email.
+     * @return the {@link SyncPoller} for checking the result of the send operation.
+     * @throws RuntimeException if the request fails to retrieve the send result.
+     */
+    @ServiceMethod(returns = ReturnType.LONG_RUNNING_OPERATION)
+    public SyncPoller<EmailSendResult, EmailSendResult> beginGetSendResult(String operationId) {
+        return beginGetSendResult(operationId, Context.NONE);
+    }
+
+    /**
+     * Retrieves the result of a previously initiated send email operation.
+     *
+     * @param operationId The operation ID of the previously sent email.
+     * @param context The context to associate with this operation.
+     * @return the {@link SyncPoller} for checking the result of the send operation.
+     * @throws RuntimeException if the request fails to retrieve the send result.
+     */
+    @ServiceMethod(returns = ReturnType.LONG_RUNNING_OPERATION)
+    public SyncPoller<EmailSendResult, EmailSendResult> beginGetSendResult(String operationId, Context context) {
+        return client.beginGetSendResultAsync(operationId, context).getSyncPoller();
+    }
 }

@@ -56,6 +56,27 @@ public final class EmailAsyncClient {
         return beginSend(message, null);
     }
 
+    /**
+    * Creates a poller to check the status of a previous send email operation using the operation ID.
+    * 
+    * @param operationId The operation ID of a previous email send request.
+    * @return A PollerFlux for checking the status of the operation.
+    */
+    @ServiceMethod(returns = ReturnType.LONG_RUNNING_OPERATION)
+    public PollerFlux<EmailSendResult, EmailSendResult> beginGetSendResultAsync(String operationId) {
+        return beginGetSendResultAsync(operationId, null);
+    }
+
+    PollerFlux<EmailSendResult, EmailSendResult> beginGetSendResultAsync(String operationId, Context context) {
+        Objects.requireNonNull(operationId, "'operationId' cannot be null.");
+
+        return PollerFlux.create(Duration.ofSeconds(1),
+            () -> emailServiceClient.getSendResultWithResponseAsync(operationId),
+            new DefaultPollingStrategy<>(this.serviceClient.getHttpPipeline(),
+                "{endpoint}".replace("{endpoint}", this.serviceClient.getEndpoint()), null, context),
+            TypeReference.createInstance(EmailSendResult.class), TypeReference.createInstance(EmailSendResult.class));
+    }
+
     PollerFlux<EmailSendResult, EmailSendResult> beginSend(EmailMessage message, Context context) {
         Objects.requireNonNull(message, "'message' cannot be null.");
         Objects.requireNonNull(message.getSenderAddress(), "'senderAddress' cannot be null.");

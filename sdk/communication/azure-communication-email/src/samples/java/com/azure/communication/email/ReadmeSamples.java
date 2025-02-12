@@ -165,4 +165,28 @@ public class ReadmeSamples {
         System.out.println("Operation Id: " + response.getValue().getId());
         // END: readme-sample-sendEmailWithInlineAttachment
     }
+
+    public void testBeginGetSendResultAsync() {
+        EmailClient emailClient = createEmailClientWithConnectionString();
+
+        // BEGIN: readme-sample-beginGetSendResultAsync
+        EmailMessage message = new EmailMessage()
+            .setSenderAddress("<sender-email-address>")
+            .setToRecipients("<recipient-email-address>")
+            .setSubject("test subject")
+            .setBodyHtml("<h1>test message</h1>");
+
+        PollerFlux<EmailSendResult, EmailSendResult> sendPoller = emailClient.beginSend(message);
+
+        AsyncPollResponse<EmailSendResult, EmailSendResult> asyncPollResponse = sendPoller.blockLast();
+        EmailSendResult emailSendResult = asyncPollResponse.getValue();
+
+        String operationId = emailSendResult.getId();
+
+        AsyncPollResponse<EmailSendResult, EmailSendResult> resultPollResponse = emailClient.beginGetSendResultAsync(operationId).block();
+
+        System.out.println("Operation Id: " + operationId);
+        System.out.println("Email send status: " + resultPollResponse.getValue().getStatus());
+        // END: readme-sample-beginGetSendResultAsync
+    }
 }

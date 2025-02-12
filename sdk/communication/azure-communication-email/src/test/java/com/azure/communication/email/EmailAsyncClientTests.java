@@ -10,6 +10,9 @@ import com.azure.core.util.BinaryData;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import reactor.test.StepVerifier;
+import com.azure.core.util.polling.PollerFlux;
+import com.azure.core.util.polling.PollResponse;
+import com.azure.core.util.polling.AsyncPollResponse;
 
 import java.util.concurrent.TimeUnit;
 
@@ -92,5 +95,31 @@ public class EmailAsyncClientTests extends EmailTestBase {
         StepVerifier.create(emailAsyncClient.beginSend(message).last()).assertNext(response -> {
             assertEquals(response.getValue().getStatus(), EmailSendStatus.SUCCEEDED);
         }).verifyComplete();
+    }
+
+    @ParameterizedTest
+    @MethodSource("getTestParameters")
+    public void testBeginGetSendResultAsync(HttpClient httpClient) {
+        emailAsyncClient = getEmailAsyncClient(httpClient);
+        EmailMessage message = new EmailMessage().setSenderAddress(SENDER_ADDRESS)
+            .setToRecipients(RECIPIENT_ADDRESS)
+            .setSubject("test subject")
+            .setBodyHtml("<h1>test message</h1>");
+
+        PollerFlux<EmailSendResult, EmailSendResult> sendPoller = emailAsyncClient.beginSend(message);
+
+        AsyncPollResponse<EmailSendResult, EmailSendResult> asyncPollResponse = sendPoller.blockLast();
+        EmailSendResult emailSendResult = asyncPollResponse.getValue();
+        String operationId = emailSendResult.getId();
+
+        System.out.println("EmailSendResult details:");
+        System.out.println("Status: " + emailSendResult.getStatus());
+
+        StepVerifier.create(emailAsyncClient.beginGetSendResultAsync(operationId)).assertNext(response -> {
+            assertEquals(response.getValue().getStatus(), EmailSendStatus.SUCCEEDED,
+                "The email send status should be SUCCEEDED.");
+        }).verifyComplete();
+
+      
     }
 }
